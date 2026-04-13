@@ -1,6 +1,80 @@
 Aloitetaan 19:00
 
 #### X)
+* Karvinen 2026: Apache installed with Ansible - quick notes
+Apache voidaan konfiguroida ja asentaan täysin automaattisesti ansiblen avulla.
+Tyypillisimmät moduulit Playbookissa ovat apt, copy, service ja template.
+
+* Handlereita ei ajeta joka kerta, vasta silloin kun jokin tehtävä ilmoittaa niille muutoksesta,  usein palvelun uudelleen käynnistys aka potkaistaan demonia
+Ne ajatetaan playbookin lopussa, jotta riittää vain 1 potkaisu.
+
+##### Huomioni. Tämä estää turhat restartit ja tehostaa ajoa.
+
+* Notifying handlers: kun tehtävä saa tilan changed, silloin handler saa herätteen. 
+Liitetään tehvävään kun se voi auheuttaa muutoksen.
+Sama handleri voi olla useassa taskissä, mutta se ajatetaan vain kerran.
+##### Huomioni. Tämä tekee mielestäni playbookista älykkään, palvelu käynnistetään vain silloin kun se on tarpeellista.
+
+Ansible-doc service
+* service moduuli hallitsee palveluiden tilaa (start, stop, restart ja reload)
+  tätä käytretään lähes jokaisessa palvelin palybookissa.
+  
+* Enabled
+  yes/no määrittelee, käynnistyykö palvelu bootissa vai ei. Hyödyllinen mikäli halutaan estää käynnistys vahingossa. Esimerkiksi jos halutaan että Apache ei käynnisty koska Nginx on käynnissä.
+  ##### Huomioni. Varmistaa että palvelu myös bootin jälkeen kuten haluttu.
+
+* Name
+Määrittää palvelun nimen.
+Nimen pitää vastata järjestelmän palvelun nimeä esim. apache2 tai nginx.
+##### Huomioni. Pienikin kirjoitusvirhe kaataa koko ajon. Kannattaa tarkastaa nimi ennen playbookin luontia.
+
+* State
+Määrittää palvelun tilan.
+started, stopped, restarted, reloaded. 
+state on idempotentti, mikäli palvelu on halutussa tilassa Ansible ei tee mitään.
+##### Huomioni. Handlerissa on lähes aina restarted, jotta muutokset saadaan voimaan.
+
+* Examples
+  Käynnistä palvelu
+- name: Start nginx service
+  service:
+    name: nginx
+    state: started
+
+Pysäytä palvelu
+- name: Stop apache2 service
+  service:
+    name: apache2
+    state: stopped
+
+Uudelleenkäynnistä palvelu
+- name: Restart nginx after config change
+  service:
+    name: nginx
+    state: restarted
+
+Lataa konfiguraatio uudelleen ilman restarttia
+- name: Reload sshd configuration
+  service:
+    name: ssh
+    state: reloaded
+
+Estä palvelua käynnistymästä bootissa
+- name: Disable apache2 autostart
+  service:
+    name: apache2
+    enabled: no
+
+Ota palvelu käyttöön bootissa
+- name: Enable nginx autostart
+  service:
+    name: nginx
+    enabled: yes
+
+##### Huomioni. Esimerkit ovat hyödynnettävissä suoraan kopioimalla playbookiin. Voi helposti tehdä cheatSheetin itselleen.
+
+
+
 
 #### A) Apassi
 
